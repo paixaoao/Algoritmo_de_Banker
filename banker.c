@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#DEFINE MAX_RESOURCES 20
+#DEFINE MAX_PROCESS 20
 int leituracustomer(FILE *file);
+int leituracommand(FILE *file);
+
 int main(int argc, char *argv[])
 {
     if (argc < 2) {
@@ -10,57 +14,78 @@ int main(int argc, char *argv[])
 
     int resources = argc - 1;
     int i,j;
-    int *instancia = (int *)malloc(resources * sizeof(int));
+    int available[MAX_RESOURCES];
 
     for (int i = 0; i < resources; i++) {
-        instancia[i] = atoi(argv[i + 1]);
+        available[i] = atoi(argv[i + 1]);
     }
-
-    int *Resources = (int *)malloc(sizeof(int));
-    *Resources = resources;
-    int linha=20;
-    int coluna=20;
-    int **alocacao=(int **)malloc(resources*sizeof(int));
-    for(i=0;i<linha;i++)
-        alocacao[i]=(int *)malloc(instancia[i]*sizeof(int));
-    if (alocacao==NULL){
-        printf("Erro na alocacao de memoria");
-        return 1;
-    }
-    /*PRECISO FAZER O REALLOC DEPOIS*/
-    for(i=0;i<instancia;i++){
+    int allocation[MAX_PROCESS][MAX_RESOURCES];
+    for(i=0;i<MAX_PROCESS;i++){
         for(j=0;j<Resources;j++)
-        scanf("%d",&alocacao[i][j]);
+        scanf("%d",&allocation[i][j]);
     }/* A matriz de alocação é uma tabela que rerpesenta a alocação de recursos para cada processo em um sistema. Ele ajuda o Banker a tomar decisões sobre a segurança das alocações de recursos*/
     //incerta se ta correto essa forma de implementação. CHECAR O CLASS DE ERICO E A IMPLEMENTAÇÃO COMO ESTÁ NO SILBERCHATZ
-    int **max=(int **)malloc(resources*sizeof(int));
-    for(i=0;i<linha;i++)
-        max[i]=(int *)malloc(instancia[i]*sizeof(int));
-    if (max==NULL){
-        printf("Erro no recebimento do MAX de recursos");
-        return 1;
+    int numProcesses;
+    FILE *file;
+    leituracustomer(file);
+    int max[MAX_PROCESS][MAX_RESOURCES];
+    for (i = 0; i < numProcesses; i++) {
+        for (j = 0; j < resources; j++) {
+            fscanf(file,"%d,", &max[i][j]);
+        }
     }
-     for(i=0;i<instancia;i++){
+     for(i=0;i<available;i++){
         for(j=0;j<Resources;j++)
         scanf("%d",&max[i][j]);
      }
-    FILE *file;
-    leituracustomer(file);
 
-   
-    free(instancia);
-    free(Resources);
+
     return 0;
 }
-int leituracustomer(FILE *file){
-    file=fopen("customer.txt","r");
-    if (file==NULL){
+int leituracustomer(FILE *file) {
+    file = fopen("customer.txt", "r");
+    if (file == NULL) {
         printf("FAILURE ON READING FILE");
         return 1;
     }
+
     char linha[70];
-     while (fgets(linha, sizeof(linha), file) != NULL) {
+    int numProcesses = 0;
+
+    while (fgets(linha, sizeof(linha), file) != NULL) {
         printf("%s", linha);
+        numProcesses++;
     }
-        fclose(file);
+
+    fclose(file);
+    return numProcesses;
+}
+int leituracommand(FILE *file){
+    file= fopen("commands.txt","r"); 
+    if (file == NULL) {
+        printf("FAILURE ON READING FILE");
+        return 1;
+    }
+    char command[3]; // Para armazenar RQ, RL ou *
+    int processIndex, req1, req2, req3;
+
+    while (fscanf(file, "%s", command) == 1) {
+        if (strcmp(command, "RQ") == 0) {
+            // Comando RQ encontrado, faça algo
+            fscanf(file, "%d %d %d %d", &processIndex, &req1, &req2, &req3);
+            printf("Comando RQ encontrado: Processo %d, Recursos %d %d %d\n", processIndex, req1, req2, req3);
+            // Adicione aqui a lógica para processar RQ
+        } else if (strcmp(command, "RL") == 0) {
+            // Comando RL encontrado, faça algo
+            fscanf(file, "%d %d %d %d", &processIndex, &req1, &req2, &req3);
+            printf("Comando RL encontrado: Processo %d, Recursos %d %d %d\n", processIndex, req1, req2, req3);
+            // Adicione aqui a lógica para processar RL
+        } else if (strcmp(command, "*") == 0) {
+            // Comando * encontrado, faça algo
+            printf("Comando * encontrado\n");
+            // Adicione aqui a lógica para processar *
+        } else {
+            printf("Comando desconhecido: %s\n", command);
+        }
+    }
 }
