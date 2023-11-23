@@ -8,7 +8,7 @@
 //Incompatibility between commands.txt and command line
 //Incompatibility between commands.txt and command line
 int leituracommand(FILE *file,FILE *commands_txt,int available, int max[MAX_PROCESS][MAX_RESOURCES],int allocation [MAX_PROCESS][MAX_RESOURCES],int need [MAX_PROCESS][MAX_RESOURCES], int num_processes, int num_resources, char commands[]);
-
+int impressaodados(int available, int max, int need, int allocation);
 
 int main(int argc, char *argv[])
 {
@@ -30,12 +30,11 @@ int main(int argc, char *argv[])
         numProcesses++;
     }
 
-    fclose(arq_customer);
     int resources = argc - 1;
     int i,j;
-    int available[MAX_RESOURCES];
+    int available[resources];
     char commands[1024];
-    for (int i = 0; i < resources; i++) {
+    for (i = 0; i < resources; i++) {
         available[i] = atoi(argv[i + 1]);
     }
     int allocation[MAX_PROCESS][MAX_RESOURCES];
@@ -43,23 +42,25 @@ int main(int argc, char *argv[])
     int need[MAX_PROCESS][MAX_RESOURCES];
     for (i = 0; i < numProcesses; i++) {
         for (j = 0; j < resources; j++) {
-            scanf("%d,", &max[i][j]);
-        }
-    }
-    for(i=0;i<numProcesses;i++){
-        for(j=0;j<resources;j++)
-        scanf("%d",&allocation[i][j]);
-    }/* A matriz de alocação é uma tabela que rerpesenta a alocação de recursos para cada processo em um sistema. Ele ajuda o Banker a tomar decisões sobre a segurança das alocações de recursos*/
-    //incerta se ta correto essa forma de implementação. CHECAR O CLASS DE ERICO E A IMPLEMENTAÇÃO COMO ESTÁ NO SILBERCHATZ
-    for(i=0;i<numProcesses;i++){
-        for(j=0;j<resources;j++){
+            fscanf(arq_customer,"%d,", &max[i][j]);
+            allocation[i][j]=0;
             need[i][j]=max[i][j]-allocation[i][j]; 
         }
     }
+   /* A matriz de alocação é uma tabela que rerpesenta a alocação de recursos para cada processo em um sistema. Ele ajuda o Banker a tomar decisões sobre a segurança das alocações de recursos*/
+    //incerta se ta correto essa forma de implementação. CHECAR O CLASS DE ERICO E A IMPLEMENTAÇÃO COMO ESTÁ NO SILBERCHATZ
 
-
+    fclose(arq_customer);
     return 0;
 }
+/*int impressaodados(int available, int max, int need, int allocation){
+    for (int i = 0; i < 5; i++) {
+        printf("%d %d %d | %d %d %d | %d %d %d\n",
+               maximum[i][0], maximum[i][1], maximum[i][2],
+               allocation[i][0], allocation[i][1], allocation[i][2],
+               need[i][0], need[i][1], need[i][2]);
+    }
+}*/
 int leituracommand(FILE *file,FILE *commands_txt,int available, int max[MAX_PROCESS][MAX_RESOURCES],int allocation [MAX_PROCESS][MAX_RESOURCES],int need [MAX_PROCESS][MAX_RESOURCES], int num_processes, int num_resources, char commands[]){
     file= fopen("commands.txt","r"); 
     if (file == NULL) {
@@ -102,6 +103,7 @@ int leituracommand(FILE *file,FILE *commands_txt,int available, int max[MAX_PROC
             //AJEITAR ISSO
             printf("Comando * encontrado\n");
             // Adicione aqui a lógica para processar *
+            //impressaodados();
         } else {
             printf("Comando Incompatibility between commands.txt and command line: \n");
         }
