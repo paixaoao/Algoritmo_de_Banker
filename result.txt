@@ -1,11 +1,31 @@
+The customer 0 request 2 was denied because it exceeds its maximum need
 The customer 0 request 1 was denied because it exceeds its maximum need
-The customer 0 request 0 2 1 was denied because result in an unsafe stateThe customer 0 request 0 2 1 was denied because result in an unsafe stateThe customer 0 request 0 2 1 was denied because result in an unsafe stateThe customer 2 request 3 0 2 was denied because result in an unsafe stateThe customer 2 request 3 0 2 was denied because result in an unsafe stateThe customer 2 request 3 0 2 was denied because result in an unsafe stateThe customer 1 request 2 0 3 was denied because result in an unsafe stateThe customer 1 request 2 0 3 was denied because result in an unsafe stateThe customer 1 request 2 0 3 was denied because result in an unsafe stateThe customer 1 request 2 0 0 was denied because result in an unsafe stateThe customer 1 request 2 0 0 was denied because result in an unsafe stateThe customer 1 request 2 0 0 was denied because result in an unsafe stateThe customer 4 request 0 0 2 was denied because result in an unsafe stateThe customer 4 request 0 0 2 was denied because result in an unsafe stateThe customer 4 request 0 0 2 was denied because result in an unsafe stateThe customer 3 request 2 1 1 was denied because result in an unsafe stateThe customer 3 request 2 1 1 was denied because result in an unsafe stateThe customer 3 request 2 1 1 was denied because result in an unsafe stateThe resources 1 5 0 are not enough to customer 4 request 4 0 0
-The customer 4 request 4 0 0 was denied because result in an unsafe stateThe customer 4 request 4 0 0 was denied because result in an unsafe stateThe customer 4 request 4 0 0 was denied because result in an unsafe stateThe customer 0 released 1 was denied because it exceeds its maximum allocation
-The resources -3 6 0 are not enough to customer 1 request 1 0 2
-The customer 1 request 1 0 2 was denied because result in an unsafe stateThe customer 1 request 1 0 2 was denied because result in an unsafe stateThe resources -3 6 0 are not enough to customer 1 request 1 0 2
-The customer 1 request 1 0 2 was denied because result in an unsafe stateThe customer 0 request 0 was denied because it exceeds its maximum need
-The resources -4 6 -2 are not enough to customer 0 request 0 2 0
-The customer 0 request 0 2 0 was denied because result in an unsafe stateThe customer 0 request 0 2 0 was denied because result in an unsafe stateThe resources -4 6 -2 are not enough to customer 0 request 0 2 0
-The customer 0 request 0 2 0 was denied because result in an unsafe stateThe resources -4 4 -2 are not enough to customer 2 request 0 1 0
-The customer 2 request 0 1 0 was denied because result in an unsafe stateThe customer 2 request 0 1 0 was denied because result in an unsafe stateThe resources -4 4 -2 are not enough to customer 2 request 0 1 0
-The customer 2 request 0 1 0 was denied because result in an unsafe state
+The customer 2 request 3 was denied because it exceeds its maximum need
+The customer 2 request 2 was denied because it exceeds its maximum need
+The customer 1 request 2 was denied because it exceeds its maximum need
+The customer 1 request 3 was denied because it exceeds its maximum need
+The customer 1 request 2 was denied because it exceeds its maximum need
+The customer 1 request 0 was denied because it exceeds its maximum need
+The customer 4 request 2 was denied because it exceeds its maximum need
+The resources 3 6 1 are not enough to customer 4 request 0 0 2
+Incompatibility between customer.txt and command lineThe customer 3 request 2 was denied because it exceeds its maximum need
+The customer 3 request 1 was denied because it exceeds its maximum need
+The customer 3 request 1 was denied because it exceeds its maximum need
+The resources 3 6 -1 are not enough to customer 3 request 2 1 1
+The customer 4 request 4 was denied because it exceeds its maximum need
+The customer 4 request 0 was denied because it exceeds its maximum need
+The resources 1 5 -2 are not enough to customer 4 request 4 0 0
+The resources 1 5 -2 are not enough to customer 4 request 4 0 0
+Incompatibility between customer.txt and command lineThe customer 1 request 1 was denied because it exceeds its maximum need
+The customer 1 request 2 was denied because it exceeds its maximum need
+The resources -3 5 -2 are not enough to customer 1 request 1 0 2
+The resources -3 5 -2 are not enough to customer 1 request 1 0 2
+The customer 0 request 2 was denied because it exceeds its maximum need
+The customer 0 request 0 was denied because it exceeds its maximum need
+The resources -4 5 -4 are not enough to customer 0 request 0 2 0
+The resources -4 5 -4 are not enough to customer 0 request 0 2 0
+The customer 2 request 0 was denied because it exceeds its maximum need
+The customer 2 request 1 was denied because it exceeds its maximum need
+The customer 2 request 0 was denied because it exceeds its maximum need
+The resources -4 3 -4 are not enough to customer 2 request 0 1 0
+The resources -4 3 -4 are not enough to customer 2 request 0 1 0
