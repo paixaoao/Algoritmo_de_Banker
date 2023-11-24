@@ -1,7 +1,0 @@
-The customer 1 request 3 was denied because it exceeds its maximum need
-The customer 1 request 2 was denied because it exceeds its maximum need
-The customer 1 request 0 was denied because it exceeds its maximum need
-The customer 0 released 1 was denied because it exceeds its maximum allocation
-The customer 1 request 1 was denied because it exceeds its maximum need
-The customer 1 request 2 was denied because it exceeds its maximum need
-The customer 2 request 1 was denied because it exceeds its maximum need
