@@ -1,31 +1,38 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 //#include <unistd.h>
 #define MAX_RESOURCES 100
 #define MAX_PROCESS 100
-void print_simulation(int num_processes, int resources, int max[MAX_PROCESS][MAX_RESOURCES], int allocation[MAX_PROCESS][MAX_RESOURCES], int need[MAX_PROCESS][MAX_RESOURCES], int available[]);
-int safety(int *available,int numProcesses, int need [MAX_PROCESS][MAX_RESOURCES],int allocation [MAX_PROCESS][MAX_RESOURCES]);
+//ERROS A SEREM IMPLEMENTADOS:
+//Incompatibility between customer.txt and command line
+//Incompatibility between commands.txt and command line
+int is_safe_state(int available[MAX_RESOURCES], int need[MAX_PROCESS][MAX_RESOURCES], int allocation[MAX_PROCESS][MAX_RESOURCES], int numCustomers, int numResources);
 int leituracommand(FILE *customer,int *available,int resources, int max[MAX_PROCESS][MAX_RESOURCES],int allocation [MAX_PROCESS][MAX_RESOURCES],int need [MAX_PROCESS][MAX_RESOURCES], int num_processes);
-void request_resources(FILE *customer,int process, int request[], int available[], int num_processes, int need[MAX_PROCESS][MAX_RESOURCES], int allocation[MAX_PROCESS][MAX_RESOURCES]);
-void release_resources(int customer, int release[], int available[], int num_processes, int allocation[MAX_PROCESS][MAX_RESOURCES],FILE *result_file,int resources);
 int main(int argc, char *argv[])
 {
     if (argc < 2) {
         printf("No resources.\n");
         return 1;
     }
+
     FILE *arq_customer = fopen("customer.txt", "r");
     if (arq_customer == NULL) {
         printf("Fail to read customer.txt");
-        return 1;
+        exit(1);
     }
+
     int i, j;
     char linha[70];
     int numProcesses = 0;
+
+    // Read the file to get the number of processes
     while (fgets(linha, sizeof(linha), arq_customer) != NULL) {
         numProcesses++;
     }
+
+    // Reset file pointer to the beginning of the file
     fseek(arq_customer, 0, SEEK_SET);
 
     int resources = argc - 1;
@@ -35,14 +42,17 @@ int main(int argc, char *argv[])
     for (i = 0; i < resources; i++) {
         available[i] = atoi(argv[i + 1]);
     }
+
     int allocation[MAX_PROCESS][MAX_RESOURCES];
     int max[MAX_PROCESS][MAX_RESOURCES];
     int need[MAX_PROCESS][MAX_RESOURCES];
+
     for (i = 0; i < numProcesses; ++i) {
         if (fgets(linha, sizeof(linha), arq_customer) == NULL) {
             fprintf(stderr, "Erro ao ler valores do arquivo\n");
             return 1;
         }
+
         char *token = strtok(linha, ",");
         for (j = 0; j < resources; ++j) {
             if (token != NULL) {
@@ -58,8 +68,19 @@ int main(int argc, char *argv[])
         }
     }
         for(i=0;i<numProcesses;i++){
+        // Initialize allocation and need arrays for each process
         for (j = 0; j < resources; j++) {
             allocation[i][j] = 0;
+        }
+    }
+    /*for(i=0;i<numProcesses;i++){
+        for(j=0;j<resources;j++){
+            printf("NA MAIN O MAX ESTA\n");
+            printf("%d\n",max[i][j]);
+            printf("NA MAIN O allocation ESTA\n");
+            printf("%d\n",allocation[i][j]);
+            printf("NA MAIN O need ESTA\n");
+            printf("%d\n",need[i][j]);
         }
     }
    /* A matriz de alocação é uma tabela que representa a alocação de recursos para cada processo em um sistema. Ele ajuda o Banker a tomar decisões sobre a segurança das alocações de recursos*/
@@ -69,155 +90,205 @@ int main(int argc, char *argv[])
     return 0;
 }
 int leituracommand(FILE *customer, int *available, int resources, int max[MAX_PROCESS][MAX_RESOURCES], int allocation[MAX_PROCESS][MAX_RESOURCES], int need[MAX_PROCESS][MAX_RESOURCES], int num_processes) {
-    FILE *arq_command = fopen("commands.txt", "r");
-    if (arq_command == NULL) {
+    FILE *file = fopen("commands.txt", "r");
+    if (file == NULL) {
         printf("Fail to read commands.txt\n");
-        return 1;
+        exit(1);
     }
-    int i, j;
+
     char command[3];
-    int processIndex, req[MAX_RESOURCES];
+    int processIndex, req[resources];
     FILE *result_file = fopen("result.txt", "w");
     if (result_file == NULL) {
         printf("Fail to create result.txt\n");
-        fclose(arq_command);
+        fclose(file);
         return 1;
     }
-
-    while (fscanf(arq_command, "%s", command) == 1) {
-            
+    while (fscanf(file, "%s", command) == 1) {
+        if (strcmp(command, "RQ") == 0 || strcmp(command, "RL") == 0) {
+            int customer;
+            fscanf(file, "%d", &customer);
+            if (customer >= num_processes) {
+                fprintf(result_file, "Invalid process ID %d\n", customer);
+                continue;
+            }
             if (strcmp(command, "RQ") == 0) {
-            int customer;
-            fscanf(arq_command, "%d", &customer);
-            request_resources(arq_command, customer, req, available, num_processes, need, allocation);
+                bool validRequest = true;
+                for (int i = 0; i < resources; i++) {
+                    fscanf(file, "%d", &req[i]);
+                    if (req[i] > need[customer][i]) {
+                        fprintf(result_file, "The customer %d request", customer);
+                            for (int i = 0; i < resources; i++) {
+                                fprintf(result_file, " %d", req[i]);
+                            }           
+                             fprintf(result_file, " was denied because it exceeds its maximum need\n");
+                            validRequest = false;
+                    break;
+                    }                    
+                    if (req[i] > available[i]) {
+                         fprintf(result_file, "The resources");
+                        for (int j = 0; j < resources; j++)
+                        fprintf(result_file, " %d", available[j]);
+    
+                        fprintf(result_file, " are not enough to fulfill customer %d request", customer);
+    
+                        for (int j = 0; j < resources; j++)
+                        fprintf(result_file, " %d", req[j]);
+
+                        fprintf(result_file, "\n");
+                        validRequest = false;
+                        break;
+                }
+                    /*if (validRequest && is_safe_state(available, need, allocation, customer, resources) == 3) {
+                    fprintf(result_file, "The customer %d request", customer);
+                    for (int i = 0; i < resources; i++) {
+                    fprintf(result_file, " %d", req[i]);
+                    }
+                    fprintf(result_file, " was denied because it results in an unsafe state\n");
+                    continue;
+                }*/
+                }
+
+
+                if (validRequest) {
+                    for (int i = 0; i < resources; i++) {
+                        available[i] -= req[i];
+                        allocation[customer][i] += req[i];
+                        need[customer][i] -= req[i];
+                    }
+
+                    fprintf(result_file,"Allocate to customer %d the resources", customer);
+                    for (int i = 0; i < resources; i++) {
+                        fprintf(result_file," %d", req[i]);
+                    }
+                    fprintf(result_file,"\n");
+                }           
             } else if (strcmp(command, "RL") == 0) {
-            int customer;
-            fscanf(arq_command, "%d", &customer);
-            int released[MAX_RESOURCES];
-            for (int i = 0; i < resources; i++) {
-                fscanf(arq_command, "%d", &released[i]);
+                if (customer < 0 || customer >= num_processes) {
+                    fprintf(result_file, "Incompatibility between customer.txt and command line");
+                    exit(1);
+                } else {
+                    for (int i = 0; i < resources; i++) {
+                        int released;
+                        if (fscanf(file, "%d", &released) != 1) {
+                        fprintf(result_file, "Error: Failed to read release value\n");
+                        exit(1);
+                         }
+                         if (released < 0) {
+                            fprintf(result_file, "Error: Negative release value (%d) for customer %d\n", released, customer);
+                            exit(1);
+                        }
+                        if (released > allocation[customer][i]) {
+                        fprintf(result_file, "The customer %d released", customer);
+                        for (int j = 0; j < resources; j++) {
+                        fprintf(result_file, " %d", released);
+                        }
+                        fprintf(result_file, " was denied because it exceeds its maximum allocation\n");
+                        continue;
+                    }
+ else {
+                            allocation[customer][i] -= released;
+                            available[i] += released;
+
+                            printf("Release from customer %d the resources", customer);
+                            for (int i = 0; i < resources; i++) {
+                                printf(" %d", released);
+                            }
+                            printf("\n");
+                        }
+                    }
+                }
             }
-            release_resources(customer, released, available, num_processes, allocation,result_file,resources);
+        }else if (strcmp(command, "*") == 0) {
+    int max_width = 0;  // Largura máxima para cada coluna
+
+    // Calcular a largura máxima para cada coluna em max
+    for (int j = 0; j < resources; j++) {
+        for (int i = 0; i < num_processes; i++) {
+            int width = snprintf(NULL, 0, "%d", max[i][j]);
+            if (width > max_width) {
+                max_width = width;
             }
-         else if (strcmp(command, "*") == 0) {
-                print_simulation(num_processes, resources, max, allocation, need, available);
-        } else {
-            printf("Incompatibility between commands.txt and command line: \n");
         }
     }
 
-    fclose(arq_command);
+    // Imprimir as tabelas formatadas
+    fprintf(result_file, "MAXIMUM | ALLOCATION | NEED\n");
+    for (int i = 0; i < num_processes; i++) {
+        for (int j = 0; j < resources; j++) {
+            fprintf(result_file, "%*d ", max_width, max[i][j]);
+        }
+        fprintf(result_file, "| ");
+        for (int j = 0; j < resources; j++) {
+            fprintf(result_file, "%*d ", max_width, allocation[i][j]);
+        }
+        fprintf(result_file, "| ");
+        for (int j = 0; j < resources; j++) {
+            fprintf(result_file, "%*d ", max_width, need[i][j]);
+        }
+        fprintf(result_file, "\n");
+    }
+
+    // Imprimir a tabela AVAILABLE
+    fprintf(result_file, "AVAILABLE ");
+    for (int i = 0; i < resources; i++) {
+        fprintf(result_file, "%*d ", max_width, available[i]);
+    }
+    fprintf(result_file, "\n");
+} else {
+    printf("Incompatibility between commands.txt and command line: \n");
+    //exit(1);
+}
+    }
+    fclose(file);
     fclose(result_file);
 }
 
 
 
-int safety(int available[], int numProcesses, int need[MAX_PROCESS][MAX_RESOURCES], int allocation[MAX_PROCESS][MAX_RESOURCES]) {
-    int work[MAX_RESOURCES];
-    int finish[MAX_PROCESS];
-    int i, j;
-    for (i = 0; i < MAX_RESOURCES; i++) {
-        work[i] = available[i];
+
+int is_safe_state(int available[MAX_RESOURCES], int need[MAX_PROCESS][MAX_RESOURCES], int allocation[MAX_PROCESS][MAX_RESOURCES], int numCustomers, int numResources) {
+    // Vetor para marcar se um cliente pode ser atendido
+    bool canFinish[MAX_PROCESS];
+
+    // Inicializa o vetor como true para todos os clientes
+    for (int i = 0; i < numCustomers; ++i) {
+        canFinish[i] = true;
     }
 
-    for (i = 0; i < numProcesses; i++) {
-        finish[i] = 0;
-    }
-
-    int numFinishedProcesses = 0;
-    while (numFinishedProcesses < numProcesses) {
-        int found = 0;
-        for (i = 0; i < numProcesses; i++) {
-            if (!finish[i]) {
-                int resourceIndex;
-                for (resourceIndex = 0; resourceIndex < MAX_RESOURCES; resourceIndex++) {
-                    if (need[i][resourceIndex] > work[resourceIndex]) {
-                        break;
-                    }
+    // Verifica se há recursos suficientes para atender à solicitação de cada cliente
+    for (int i = 0; i < numCustomers; ++i) {
+        if (canFinish[i]) {
+            for (int j = 0; j < numResources; ++j) {
+                if (need[i][j] > available[j]) {
+                    canFinish[i] = false;
+                    return 3;
                 }
-                if (resourceIndex == MAX_RESOURCES) {
-                    for (int j = 0; j < MAX_RESOURCES; j++) {
-                        work[j] += allocation[i][j];
-                    }
-                    finish[i] = 1;
-                    numFinishedProcesses++;
-                    found = 1;
+            }
+
+            // Se o cliente pode ser atendido, atualiza os recursos disponíveis
+            if (canFinish[i]) {
+                for (int j = 0; j < numResources; ++j) {
+                    available[j] += allocation[i][j];
                 }
             }
         }
-        if (!found) {
-            // Não foi encontrado um processo para executar
-            int unsafe=0;
-            //printf("Estado não seguro encontrado.\n");
-            return unsafe; // Estado não seguro
+    }
+
+    // Verifica se todos os clientes podem ser atendidos
+    bool safeState = true;
+    for (int i = 0; i < numCustomers; ++i) {
+        if (!canFinish[i]) {
+            safeState = false;
+            break;
         }
     }
 
-    return 1; // Estado seguro
+    return safeState;
 }
-void request_resources(FILE *customer,int process, int request[], int available[], int num_processes, int need[MAX_PROCESS][MAX_RESOURCES], int allocation[MAX_PROCESS][MAX_RESOURCES]) {
-    for (int i = 0; i < MAX_RESOURCES; i++) {
-        if (request[i] > need[process][i]) {
-            printf("The customer %d request %d was denied because it exceeds its maximum need.\n", process, i);
-            return;
-        }
-    }
-    if (safety(available, num_processes, need, allocation) == 0) {
-    printf("The customer %d request was denied because it results in an unsafe state.\n", process);
-    return;
-    }
-
-    for (int i = 0; i < MAX_RESOURCES; i++) {
-        available[i] -= request[i];
-        allocation[process][i] += request[i];
-        need[process][i] -= request[i];
-    }
-
-    printf("The customer %d request was successful.\n", process);
-}
-
-// Função para liberar recursos
-void release_resources(int customer, int release[], int available[], int num_processes, int allocation[MAX_PROCESS][MAX_RESOURCES],FILE *result_file,int resources) {
-    int i;
-
-    if (customer < 0 || customer >= num_processes) {
-        printf("Incompatibility between customer.txt and command line");
-    } else {
-       for (i = 0; i < MAX_RESOURCES; i++) {
-    int released;
-    released = release[i];
-
-    if (released > allocation[customer][i]) {
-        printf("The customer %d released %d was denied because it exceeds its maximum allocation \n", customer, released);
-    } else {
-        allocation[customer][i] -= released;
-        available[i] += released;
-        printf("Release from customer %d the resources: %d\n", customer, released);
-            }
-        }
-    }
-}
-
-void print_simulation(int num_processes, int resources, int max[MAX_PROCESS][MAX_RESOURCES], int allocation[MAX_PROCESS][MAX_RESOURCES], int need[MAX_PROCESS][MAX_RESOURCES], int available[]) {
-    printf("MAXIMUM | ALLOCATION | NEED\n");
-    for (int i = 0; i < num_processes; i++) {
-        for (int j = 0; j < resources; j++) {
-            printf("%d ", max[i][j]);
-        }
-        printf("| ");
-        for (int j = 0; j < resources; j++) {
-            printf("%d ", allocation[i][j]);
-        }
-        printf("| ");
-        for (int j = 0; j < resources; j++) {
-            printf("%d ", need[i][j]);
-        }
-        printf("\n");
-    }
-
-    printf("AVAILABLE ");
-    for (int i = 0; i < MAX_RESOURCES; i++) {
-    printf("%d ", available[i]);
-    }
-    printf("\n");
-}
+/*int FormatDigit(int matriz[][nRecurso], int numClientes, int numColuna){
+  int maior = 1;
+  for(int i = 0; i<numClientes; i++){
+    if(matriz[i][numColuna] > maior){
+      maior = matriz[i][numColuna];
+    }*/
