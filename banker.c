@@ -5,7 +5,10 @@
 //#include <unistd.h>
 #define MAX_RESOURCES 100
 #define MAX_PROCESS 100
-int is_safe_state(int *temp_available, int *temp_need, int *temp_allocation, int numCustomers, int numResources);
+//ERROS A SEREM IMPLEMENTADOS:
+//Incompatibility between customer.txt and command line
+//Incompatibility between commands.txt and command line
+//int is_safe_state(int available[MAX_RESOURCES], int need[MAX_PROCESS][MAX_RESOURCES], int allocation[MAX_PROCESS][MAX_RESOURCES], int numCustomers, int numResources);
 int leituracommand(FILE *customer,int *available,int resources, int max[MAX_PROCESS][MAX_RESOURCES],int allocation [MAX_PROCESS][MAX_RESOURCES],int need [MAX_PROCESS][MAX_RESOURCES], int num_processes);
 int main(int argc, char *argv[])
 {
@@ -55,7 +58,7 @@ int main(int argc, char *argv[])
             if (token != NULL) {
                 if (atof(token) >= 0) {
                     max[i][j] = atoi(token);
-                    need[i][j] = max[i][j] - allocation[i][j];
+                    need[i][j] = max[i][j];
                 } else {
                     printf("Recurso Negativo.\n"); // TRATAMENTO
                     exit(1);
@@ -70,6 +73,7 @@ int main(int argc, char *argv[])
             allocation[i][j] = 0;
         }
     }
+
    /* A matriz de alocação é uma tabela que representa a alocação de recursos para cada processo em um sistema. Ele ajuda o Banker a tomar decisões sobre a segurança das alocações de recursos*/
     leituracommand(arq_customer, available, resources, max, allocation, need, numProcesses);
 
@@ -108,10 +112,10 @@ int leituracommand(FILE *customer, int *available, int resources, int max[MAX_PR
                             for (int i = 0; i < resources; i++) {
                                 fprintf(result_file, " %d", req[i]);
                             }           
-                             fprintf(result_file, " was denied because exceed its maximum need\n");
+                             fprintf(result_file, " was denied because exceeds its maximum need\n");
                             validRequest = false;
                     break;
-                    }                  
+                    }                    
                     if (req[i] > available[i]) {
                          fprintf(result_file, "The resources");
                         for (int j = 0; j < resources; j++)
@@ -126,15 +130,14 @@ int leituracommand(FILE *customer, int *available, int resources, int max[MAX_PR
                         validRequest = false;
                         break;
                 }
-                    if (validRequest && is_safe_state(available, need[customer], allocation[customer], num_processes, resources) == 0) {
+                    /*if (validRequest && is_safe_state(available, need, allocation, customer, resources) == 3) {
                     fprintf(result_file, "The customer %d request", customer);
                     for (int i = 0; i < resources; i++) {
-                        fprintf(result_file, " %d", req[i]);
+                    fprintf(result_file, " %d", req[i]);
                     }
-                    fprintf(result_file, " was denied because it results in an unsafe state\n");
-                   
-                continue;
-            }
+                    fprintf(result_file, " was denied because result in an unsafe state\n");
+                    continue;
+                }*/
                 }
 
 
@@ -163,18 +166,18 @@ int leituracommand(FILE *customer, int *available, int resources, int max[MAX_PR
                         exit(1);
                          }
                          if (released < 0) {
-                            printf("Error: Negative release value (%d) for customer %d\n", released, customer);
+                            fprintf(result_file, "Error: Negative release value (%d) for customer %d\n", released, customer);
                             exit(1);
                         }
-                        if (released >= allocation[customer][i]) {
+                        if (released > allocation[customer][i]) {
                         fprintf(result_file, "The customer %d released", customer);
                         for (int j = 0; j < resources; j++) {
                         fprintf(result_file, " %d", released);
                         }
-                        fprintf(result_file, " was denied because exceeds its maximum allocation\n");
+                        fprintf(result_file, " was denied because exceed its maximum allocation\n");
                         continue;
                     }
-                    else {
+                        else {
                             allocation[customer][i] -= released;
                             available[i] += released;
 
@@ -233,50 +236,39 @@ int leituracommand(FILE *customer, int *available, int resources, int max[MAX_PR
 }
 
 
-int is_safe_state(int *temp_available, int *temp_need, int *temp_allocation, int numCustomers, int numResources) {
-    int work[numResources];
-    int finish[numCustomers];
 
-    // Inicializa work com os recursos disponíveis
-    for (int i = 0; i < numResources; ++i) {
-        work[i] = temp_available[i];
+
+/*int is_safe_state(int available[MAX_RESOURCES], int need[MAX_PROCESS][MAX_RESOURCES], int allocation[MAX_PROCESS][MAX_RESOURCES], int numCustomers, int numResources) {
+    bool canFinish[MAX_PROCESS];
+
+    for (int i = 0; i < numCustomers; ++i) {
+        canFinish[i] = true;
     }
 
-    // Inicializa finish como falso para todos os clientes
-    memset(finish, 0, numCustomers * sizeof(int));
-
-    int count = 0; // Contador de processos finalizados
-
-    while (count < numCustomers) {
-        int found = 0; // Verifica se foi possível encontrar um processo neste loop
-
-        for (int i = 0; i < numCustomers; ++i) {
-            if (finish[i] == 0) { // Se o processo não foi finalizado ainda
-                int j;
-                for (j = 0; j < numResources; ++j) {
-                    if (temp_need[i * numResources + j] > work[j]) {
-                        break;
-                    }
+    for (int i = 0; i < numCustomers; ++i) {
+        if (canFinish[i]) {
+            for (int j = 0; j < numResources; ++j) {
+                if (need[i][j] > available[j]) {
+                    canFinish[i] = false;
+                    return 3;
                 }
+            }
 
-                if (j == numResources) { // Todos os recursos necessários estão disponíveis
-                    for (int k = 0; k < numResources; ++k) {
-                        work[k] += temp_allocation[i * numResources + k]; // Libera os recursos alocados
-                    }
-
-                    finish[i] = 1; // Marca o processo como finalizado
-                    found = 1;     // Encontrou um processo neste loop
-                    count++;
+            if (canFinish[i]) {
+                for (int j = 0; j < numResources; ++j) {
+                    available[j] += allocation[i][j];
                 }
             }
         }
+    }
 
-        if (found == 0) {
-            return 0;
+    bool safeState = true;
+    for (int i = 0; i < numCustomers; ++i) {
+        if (!canFinish[i]) {
+            safeState = false;
+            break;
         }
     }
 
-    return 1; // Se todos os processos foram finalizados, o estado é seguro
-}
-
-
+    return safeState;
+}*/
